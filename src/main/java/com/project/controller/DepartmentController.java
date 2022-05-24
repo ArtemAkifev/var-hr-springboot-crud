@@ -1,6 +1,7 @@
 package com.project.controller;
 
 import com.project.model.Department;
+import com.project.model.Employee;
 import com.project.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,24 +18,15 @@ public class DepartmentController {
 
     @Autowired
     DepartmentRepository departmentRepository;
-    @GetMapping("/departments1")
-    public ResponseEntity<List<Department>> getAllDepartments(@RequestParam(required = false) String title) {
-        try {
-            List<Department> departments = new ArrayList<Department>();
-            if (title == null)
-                departments.addAll(departmentRepository.findAll());
-            else
-                departments.addAll(departmentRepository.findByTitleContaining(title));
-            if (departments.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(departments, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+
+    @GetMapping("/departments/name/{name}")
+    public ResponseEntity<Department> getDepartmentByName(@PathVariable(required = false) String name) {
+        Optional<Department> department = departmentRepository.findFirstByName(name);
+        return department.map(value -> new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
+
     @GetMapping("/departments/{id}")
-    public ResponseEntity<Department> getTutorialById(@PathVariable("id") long id) {
+    public ResponseEntity<Department> getDepartmentById(@PathVariable("id") long id) {
         Optional<Department> departmentData = departmentRepository.findById(id);
         if (departmentData.isPresent()) {
             return new ResponseEntity<>(departmentData.get(), HttpStatus.OK);
@@ -45,9 +37,9 @@ public class DepartmentController {
     @PostMapping("/departments")
     public ResponseEntity<Department> createDepartment(@RequestBody Department department) {
         try {
-            Department _department = departmentRepository
-                    .save(new Department(department.getName_departments()));
-            return new ResponseEntity<>(_department, HttpStatus.CREATED);
+            Department departmentNew = departmentRepository
+                    .save(department);
+            return new ResponseEntity<>(departmentNew, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -56,9 +48,9 @@ public class DepartmentController {
     public ResponseEntity<Department> updateDepartment(@PathVariable("id") long id, @RequestBody Department tutorial) {
         Optional<Department> departmentData = departmentRepository.findById(id);
         if (departmentData.isPresent()) {
-            Department _department = departmentData.get();
-            _department.setName_departments(_department.getName_departments());
-            return new ResponseEntity<>(departmentRepository.save(_department), HttpStatus.OK);
+            Department department = departmentData.get();
+            department.setName(department.getName());
+            return new ResponseEntity<>(departmentRepository.save(department), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -83,7 +75,7 @@ public class DepartmentController {
     }
 
     @GetMapping("/departments")
-    public ResponseEntity<List<Department>> getTutorialById() {
+    public ResponseEntity<List<Department>> getAllDepartments() {
         List<Department> departmentData = departmentRepository.findAll();
         if (!departmentData.isEmpty()) {
             return new ResponseEntity<>(departmentData, HttpStatus.OK);
@@ -91,5 +83,16 @@ public class DepartmentController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping("/departments/{id}/employees")
+    public ResponseEntity<List<Employee>> getAllEmployeesForDepartment(@PathVariable("id") long id) {
+        Optional<Department> department = departmentRepository.findById(id);
+        if (department.isPresent()) {
+            return new ResponseEntity<>(department.get().getEmployees(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
 
 }

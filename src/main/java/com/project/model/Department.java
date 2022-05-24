@@ -1,31 +1,43 @@
 package com.project.model;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class Department {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long departmentId;
-    private String name_departments;
+    private long id;
+    private String name;
 
-    public long getDepartment_id() {
-        return departmentId;
+    @OneToMany(mappedBy = "departmentId", fetch = FetchType.EAGER)
+    private List<Employee> employees;
+
+    public long getId() {
+        return id;
     }
 
-    public String getName_departments() {
-        return name_departments;
+    public String getName() {
+        return name;
     }
 
-    public void setName_departments(String name_departments) {
-        this.name_departments = name_departments;
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Employee> getEmployees() {
+        return employees;
     }
 
     public Department(){
 
     }
 
-    public Department(String name_departments) {
-        this.name_departments = name_departments;
+    public Department(String name) {
+        this.name = name;
     }
 }
